@@ -63,6 +63,9 @@ function install_panel() {
     
     update_panel "$package_mode" "$force"
     panel_update=$?
+    # We downgrade the marshmallow because of api_flask is not supporting v4
+    /opt/hiddify-manager/.venv/bin/pip install "marshmallow<=3.26.1"
+    
     update_config "$package_mode" "$force"
     config_update=$?
     post_update_tasks  "$panel_update" "$config_update" "$package_mode"
@@ -71,8 +74,6 @@ function install_panel() {
         hiddify-panel-cli set-setting -k package_mode -v $1
     fi
 
-    # We downgrade the marshmallow because of api_flask is not supporting v4
-    pip install -U "marshmallow<=3.26.1"
 }
 
 function update_panel() {
@@ -306,6 +307,7 @@ function update_from_github() {
     rm -f xray/configs/*.json
     rm -f singbox/configs/*.json
     bash install.sh --no-gui --no-log
+    bash install.sh --no-gui --no-log #temporary fix
 }
 
 function custom_version_installer(){
@@ -343,7 +345,7 @@ if [[ " $@ " == *" dev "* || " $@ " == *" docker "* || " $@ " == *" develop "* ]
 fi
 
 # Run the main function and log the output
-if [[ " $@ " == *" --no-gui "* || "$(get_installed_panel_version) " == "8."* ]]; then
+if [[ " $@ " == *" --no-gui "* || "$(get_installed_panel_version) " == "8."* || "$NO_UI" == "true" ]]; then
     set -- "${@/--no-gui/}"
     set_lock $NAME
     if [[ " $@ " == *" --no-log "* ]]; then
