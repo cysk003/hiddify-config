@@ -57,10 +57,9 @@ function install_panel() {
 
     
 
-    install_package curl libev-dev libevdev2 default-libmysqlclient-dev build-essential git ca-certificates pkg-config   jq wireguard  pkg-config #needed for installing uv and hiddifypanel
 
-    
-    
+    install_package curl clang libev-dev libevdev2 default-libmysqlclient-dev build-essential git ca-certificates pkg-config   jq wireguard  pkg-config #needed for installing uv and hiddifypanel
+
     update_panel "$package_mode" "$force"
     panel_update=$?
     # We downgrade the marshmallow because of api_flask is not supporting v4
@@ -155,7 +154,7 @@ function update_panel() {
         ;;
         release) 
             #TODO release should change to 3.13
-            install_python310
+            #install_python310
             activate_python_venv
             # error "you can not install release version 8 using this script"
             # exit 1
@@ -168,7 +167,7 @@ function update_panel() {
                 update_progress "Updating..." "Hiddify Panel from $current_panel_version to $latest" 10
                 # pip3 install -U hiddifypanel==$latest
                 disable_panel_services
-                pip install -U wheel hiddifypanel
+                uv pip install -U wheel hiddifypanel
                 update_progress "Updated..." "Hiddify Panel to $latest" 50
                 return 0
             fi
@@ -191,11 +190,12 @@ function update_config() {
     case "$package_mode" in
         docker)
             echo "installing in docker mode"
-            DO_NOT_RUN=true bash /opt/hiddify-manager/install.sh install-docker --no-gui --no-log
+            DO_NOT_RUN=true bash /opt/hiddify-manager/install.sh docker --no-gui --no-log
             echo "installing in docker mode finishs"
         ;;
         v*)
             update_progress "Updating..." "Hiddify Config from $current_config_version to $latest" 60
+            export HIDDIFY_DISABLE_UPDATE=true
             #update_from_github "hiddify-manager.tar.gz" "https://github.com/hiddify/Hiddify-Manager/archive/refs/tags/${package_mode}.tar.gz" $latest
             update_from_github "hiddify-manager.zip" "https://github.com/hiddify/Hiddify-Manager/releases/download/${package_mode}/hiddify-manager.zip" $latest
             update_progress "Updated..." "Hiddify Config to $latest" 100
@@ -206,7 +206,7 @@ function update_config() {
             echo "DEVELOP: Current Config Version=$current_config_version -- Latest=$latest"
             if [[ "$force" == "true" || "$latest" != "$current_config_version" ]]; then
                 update_progress "Updating..." "Hiddify Config from $current_config_version to $latest" 60
-                update_from_github "hiddify-manager.tar.gz" "https://github.com/hiddify/hiddify-manager/archive/refs/heads/main.tar.gz" $latest
+                update_from_github "hiddify-manager.tar.gz" "https://github.com/hiddify/hiddify-manager/archive/refs/heads/dev.tar.gz" $latest
                 
                 update_progress "Updated..." "Hiddify Config to $latest" 100
                 return 0
@@ -253,31 +253,29 @@ function post_update_tasks() {
         echo "---------------------Finished!------------------------"
     fi
     remove_lock $NAME
-    if [[ $panel_update == 0 ]]; then
-        systemctl kill -s SIGTERM hiddify-panel
-    fi
-    systemctl start hiddify-panel
-    
-    
-    cd /opt/hiddify-manager/hiddify-panel
-    if [ "$CREATE_EASYSETUP_LINK" == "true" ];then
-        hiddify-panel-cli set-setting --key create_easysetup_link --val True
-    fi
-    
-    case "$package_mode" in
-        release|beta)
-            hiddify-panel-cli set-setting --key package_mode --val $package_mode
-        ;;
-        dev|develop)
-            hiddify-panel-cli set-setting --key package_mode --val develop
-        ;;
-        *)
-            hiddify-panel-cli set-setting --key auto_update --val False
-        ;;
-    esac
-    
-    if [[ $panel_update == 0 && $config_update != 0 ]]; then
-        bash /opt/hiddify-manager/apply_configs.sh --no-gui --no-log
+
+    if [ "$package_mode" != "docker" ];then
+      if [[ $panel_update == 0 ]]; then
+              systemctl kill -s SIGTERM hiddify-panel
+      fi
+
+      if [[ $panel_update == 0 && $config_update != 0 ]]; then
+          bash /opt/hiddify-manager/apply_configs.sh --no-gui --no-log
+      fi
+      systemctl start hiddify-panel
+      cd /opt/hiddify-manager/hiddify-panel
+      if [ "$CREATE_EASYSETUP_LINK" == "true" ];then
+          hiddify-panel-cli set-setting --key create_easysetup_link --val True
+      fi
+
+      case "$package_mode" in
+          release|beta)
+              hiddify-panel-cli set-setting --key package_mode --val $package_mode
+          ;;
+          dev|develop)
+              hiddify-panel-cli set-setting --key package_mode --val develop
+          ;;
+      esac
     fi
 }
 
@@ -339,9 +337,9 @@ if [[ " $@ " == *" custom "* ]];then
 fi
 
 
-export USE_VENV=310
-if [[ " $@ " == *" dev "* || " $@ " == *" docker "* || " $@ " == *" develop "* ]];then
-    export USE_VENV=310
+export USE_VENV=313
+if [[ " $@ " == *" dev "* || " $@ " == *" docker "* || " $@ " == *" develop "* || " $@ " == *" beta "* ]];then
+    export USE_VENV=313
 fi
 
 # Run the main function and log the output

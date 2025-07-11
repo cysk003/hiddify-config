@@ -31,9 +31,9 @@ function main() {
     if [ "$DO_NOT_INSTALL" == "true" ];then
         PROGRESS_ACTION="Applying..."
     fi
-    if [ "$HIDDIFY_DEBUG" = "1" ]; then
-        export USE_VENV=313
-    fi
+
+    export USE_VENV=313
+
     install_python
     activate_python_venv
     
@@ -41,7 +41,7 @@ function main() {
         clean_files
         update_progress "${PROGRESS_ACTION}" "Common Tools and Requirements" 2
         runsh install.sh common &
-        if [ "$MODE" != "install-docker" ];then
+        if [ "$MODE" != "docker" ];then
             install_run other/redis &
             install_run other/mysql &
         fi    
@@ -53,12 +53,14 @@ function main() {
     fi
     
     # source common/set_config_from_hpanel.sh
-    update_progress "HiddifyPanel" "Reading Configs from Panel..." 5
-    set_config_from_hpanel
-    
-    update_progress "Applying Configs" "..." 8
-    
-    bash common/replace_variables.sh
+    if [ "$DO_NOT_RUN" != "true" ];then
+      update_progress "HiddifyPanel" "Reading Configs from Panel..." 5
+      set_config_from_hpanel
+
+      update_progress "Applying Configs" "..." 8
+
+      bash common/replace_variables.sh
+    fi
     
     if [ "$MODE" != "apply_users" ]; then
         bash ./other/deprecated/remove_deprecated.sh
@@ -103,7 +105,7 @@ function main() {
         fi
 
         update_progress "${PROGRESS_ACTION}" "Xray" 75
-        if [[ $(hconfig "core_type") == "xray" ]];then
+        if [[ $(hconfig "core_type") == "xray" ||  "$MODE" == "docker" ]];then
             install_run xray 1 &
         else
             install_run xray 0 &
@@ -166,7 +168,7 @@ function install_run() {
     echo "======================$1====================================={"
    if [ "$DO_NOT_INSTALL" != "true" ];then
             runsh install.sh $@
-        if [ "$MODE" != "apply_users" ] && [ "$MODE" != "install-docker"  ]; then
+        if [ "$MODE" != "apply_users" ] && [ "$MODE" != "docker"  ]; then
             systemctl daemon-reload
         fi
     fi

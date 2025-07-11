@@ -176,7 +176,9 @@ install_package() {
         if [ $? -ne 0 ]; then
             apt --fix-broken install -y
             apt update
-            apt install -y $not_installed_packages
+            #retries for 3 times
+            apt install -y $not_installed_packages ||apt install -y $not_installed_packages||apt install -y $not_installed_packages
+            
         fi
     fi
 }
@@ -615,11 +617,11 @@ function check_venv_compatibility() {
         ;;
         beta)
             # Beta is always venv compatible
-            USE_VENV=310
+            USE_VENV=313
         ;;
         release)
             # Get the latest release version
-            USE_VENV=310
+            USE_VENV=313
         ;;
         *)
             echo "Unknown package mode: $package_mode"
