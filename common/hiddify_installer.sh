@@ -63,7 +63,7 @@ function install_panel() {
     update_panel "$package_mode" "$force"
     panel_update=$?
     # We downgrade the marshmallow because of api_flask is not supporting v4
-    /opt/hiddify-manager/.venv/bin/pip install "marshmallow<=3.26.1"
+    #/opt/hiddify-manager/.venv/bin/pip install "marshmallow<=3.26.1"
     
     update_config "$package_mode" "$force"
     config_update=$?
@@ -304,6 +304,13 @@ function update_from_github() {
     rm "$file_name"
     rm -f xray/configs/*.json
     rm -f singbox/configs/*.json
+    rm -f /opt/hiddify-manager/xray/configs/05_inbounds_10*.json*
+    rm -f /opt/hiddify-manager/xray/configs/05_inbounds_h2*.json*
+    rm -f /opt/hiddify-manager/xray/configs/05_inbounds_02_realitygrpc*.json*
+    rm -f /opt/hiddify-manager/xray/configs/05_inbounds_02_realityh2*.json*
+    rm -f /opt/hiddify-manager/singbox/configs/05_inbounds_2071_realitygrpc_main.json*
+    rm -f /opt/hiddify-manager/singbox/configs/05_inbounds_20[123][1234]*.json*
+
     bash install.sh --no-gui --no-log
     bash install.sh --no-gui --no-log #temporary fix
 }

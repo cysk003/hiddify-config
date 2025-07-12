@@ -1,7 +1,68 @@
 # Changelog
 
 
-## (unreleased)
+## v11.0.8 (2025-07-11)
+
+### Other
+
+* Make sure using py313 in all cases. [hiddify-com]
+
+
+## v11.0.7 (2025-07-11)
+
+### Other
+
+* Update. [hiddify-com]
+
+
+## v11.0.6 (2025-07-11)
+
+### Fix
+
+* Issue python not detected in some cases. [hiddify-com]
+
+
+## v11.0.5 (2025-07-11)
+
+### Fix
+
+* Installer. bug. [hiddify-com]
+
+
+## v11.0.4 (2025-07-11)
+
+### Other
+
+* Merge branch 'main' of github.com:hiddify/Hiddify-Manager. [hiddify-com]
+
+* Merge pull request #4999 from hiddify/dev. [Hiddify]
+
+  update
+
+* Update release script. [hiddify-com]
+
+
+## v11.0.3 (2025-07-11)
+
+### New
+
+* Add singbox unified proxy. [hiddify-com]
+
+### Other
+
+* Update hiddify cli. [hiddify-com]
+
+* Fix tgo installation. [hiddify-com]
+
+
+## v11.0.2 (2025-07-10)
+
+### Fix
+
+* Download script. [hiddify-com]
+
+
+## v11.0.1 (2025-07-10)
 
 ### Fix
 
