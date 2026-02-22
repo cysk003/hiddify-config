@@ -39,7 +39,15 @@ backend nginx_dispatcher_http_h2
     server nginx unix@/opt/hiddify-manager/nginx/run/h2.sock send-proxy-v2 tfo proto h2
 
 
+backend naive
+    mode http
+    server naive 127.0.0.1:4201 send-proxy-v2 tfo proto h2
 
+
+backend naive_quic
+    mode http
+    #server naive quic4@127.0.0.1:4300 send-proxy-v2 tfo ssl verify none 
+    server naive 127.0.0.1:4201 send-proxy-v2 tfo proto h2
 
 
 
@@ -54,7 +62,11 @@ backend tgdecoy_http
     server tgdecoy_http {{hconfigs['telegram_fakedomain']}}
 
 backend telegram
-    server telegram 127.0.0.1:1001
+    {%if hconfigs['telegram_lib'] == "telemt" %}
+        server telegram 127.0.0.1:1001 tfo send-proxy-v2
+    {%else%}
+        server telegram 127.0.0.1:1001
+    {%endif%}
 
 {%if hconfigs['ssfaketls_enable'] and hconfigs['ssfaketls_fakedomain'] %}
 backend ssdecoy_http

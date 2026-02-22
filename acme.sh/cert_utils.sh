@@ -30,9 +30,18 @@ acmecmd() {
     acme.sh --issue \
         -w /opt/hiddify-manager/acme.sh/www/ \
         --log /opt/hiddify-manager/log/system/acme.log \
-        --pre-hook "systemctl restart hiddify-nginx" \
+        --pre-hook "bash /opt/hiddify-manager/acme.sh/prepare_acme.sh" \
         "$@"
 }
+
+
+stop_nginx_acme(){
+    echo "" >/opt/hiddify-manager/nginx/parts/acme.conf
+    systemctl reload --now hiddify-nginx
+    systemctl reload hiddify-haproxy
+}
+
+
 function get_cert() {
     cd /opt/hiddify-manager/acme.sh/
     source ./lib/acme.sh.env
@@ -43,10 +52,8 @@ function get_cert() {
     rm -f $ssl_cert_path/$DOMAIN.key
 
     if [ ${#DOMAIN} -le 64 ]; then
-        mkdir -p /opt/hiddify-manager/acme.sh/www/.well-known/acme-challenge
-        echo "location /.well-known/acme-challenge {root /opt/hiddify-manager/acme.sh/www/;}" >/opt/hiddify-manager/nginx/parts/acme.conf
-        chown -R nginx /opt/hiddify-manager/acme.sh/www/
-        # systemctl reload --now hiddify-nginx
+        
+        
 
         DOMAIN_IP=$(dig +short -t a $DOMAIN.)
         DOMAIN_IPv6=$(dig +short -t aaaa $DOMAIN.)
@@ -64,49 +71,35 @@ function get_cert() {
         if isipv4 "$DOMAIN"; then
             acmecmd -d $DOMAIN --server letsencrypt --certificate-profile shortlived --days 6 
         elif isipv6 "$DOMAIN"; then
-            acmecmd -d [$DOMAIN] --server letsencrypt --certificate-profile shortlived --days 6 
-        else 
-            acmecmd -d $DOMAIN --server letsencrypt
-            if is_ok_domain_zerossl "$DOMAIN"; then
-                acmecmd -d $DOMAIN 
+            acmecmd -d [$DOMAIN] --server letsencrypt --certificate-profile shortlived --days 6 --listen-v6
+        else
+            acmecmd -d "$DOMAIN" --server letsencrypt
+
+            if [ "$err" -ne 0 ] && is_ok_domain_zerossl "$DOMAIN"; then
+                acmecmd -d "$DOMAIN" --server zerossl
             fi
+
         fi
         
-
-        cp $ssl_cert_path/$DOMAIN.crt $ssl_cert_path/$DOMAIN.crt.bk
-        cp $ssl_cert_path/$DOMAIN.crt.key $ssl_cert_path/$DOMAIN.crt.key.bk
         acme.sh --installcert -d $DOMAIN \
             --fullchainpath $ssl_cert_path/$DOMAIN.crt \
             --keypath $ssl_cert_path/$DOMAIN.crt.key \
             --reloadcmd "echo success"
+        
         err=$?
-        if [ $err == 0 ]; then
-            rm $ssl_cert_path/$DOMAIN.crt.bk
-            rm $ssl_cert_path/$DOMAIN.crt.key.bk
-        else
-            mv $ssl_cert_path/$DOMAIN.crt.key.bk $ssl_cert_path/$DOMAIN.crt.key
-            mv $ssl_cert_path/$DOMAIN.crt.bk $ssl_cert_path/$DOMAIN.crt
-        fi
-
+        
     else
         err=1
     fi
 
     if [[ $err != 0 ]]; then
-        bash generate_self_signed_cert.sh $DOMAIN
+        get_self_signed_cert $DOMAIN  #it will check the certificate if is valid it will not create 
     fi
 
     chmod 600 $ssl_cert_path/$DOMAIN.crt.key
     chmod 600 -R $ssl_cert_path
-    echo "" >/opt/hiddify-manager/nginx/parts/acme.conf
-    systemctl reload --now hiddify-nginx
-
-    systemctl reload hiddify-haproxy
 }
 
-function has_valid_cert() {
-    certificate="/opt/hiddify-manager/ssl/$1.crt"
-}
 
 function get_self_signed_cert() {
     cd /opt/hiddify-manager/acme.sh/
