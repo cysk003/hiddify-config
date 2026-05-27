@@ -3,6 +3,48 @@
 
 ## (unreleased)
 
+### Fix
+
+* Domain add issue. [hiddify-com]
+
+
+## v12.3.0 (2026-04-28)
+
+### New
+
+* Add vaydns and update telemt. [hiddify-com]
+
+* Add dnstt. [hiddify-com]
+
+### Fix
+
+* No Dockerfile when install stable version with docker. [Yusheng]
+
+  [Installing HiddifyManager using Docker](https://hiddify.com/manager/installation-and-setup/Install-Hiddify-using-Docker/)
+
+* Bug. [hiddify-com]
+
+* Issue. [hiddify-com]
+
+* Bug. [hiddify-com]
+
+### Other
+
+* Merge branch 'main' into dev. [hiddify-com]
+
+* Merge pull request #5303 from yshngg/patch-1. [Hiddify]
+
+  fix: no Dockerfile when install stable version with docker
+
+* Merge branch 'beta' of github.com:hiddify/Hiddify-Manager into beta. [hiddify-com]
+
+* Update vaydns. [hiddify-com]
+
+* Update vaydns to 0.2.4. [hiddify-com]
+
+
+## v12.0.0 (2026-02-21)
+
 ### New
 
 * Accountable mtproxy. [hiddify-com]
