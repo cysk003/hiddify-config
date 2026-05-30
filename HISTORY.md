@@ -1,7 +1,14 @@
 # Changelog
 
 
-## (unreleased)
+## v12.3.2 (2026-05-29)
+
+### Other
+
+* Update xray. [hiddify-com]
+
+
+## v12.3.1 (2026-05-26)
 
 ### Fix
 

@@ -71,11 +71,21 @@ endif
 	@git commit -m "release: version $${TAG} 🚀" 
 	@echo "creating git tag : v$${TAG}" 
 	@git tag v$${TAG} 
+	git push
 	@git push --tags 
-	@git checkout beta && git pull && git rebase dev && git push;
+	make sync_branch BRANCH=beta
 	@if ! echo "$${VERSION_STR}" | grep -q "b"; then \
- 		echo "1" ||git checkout main && git rebase dev && git push; \ 
+ 		make sync_branch BRANCH=main
 	fi
-	@git checkout dev
 	@echo "Github Actions will detect the new tag and release the new version."
 	
+
+
+sync_branch:
+	[ ! -z "$(BRANCH)" ] || { echo "no branch main/dev"; exit 1; } 
+	make -C ./hiddify-panel/src sync_branch BRANCH=$(BRANCH)
+	git checkout $(BRANCH)
+	git rebase dev 
+	git push
+	git checkout dev
+	git log -1
